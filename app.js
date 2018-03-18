@@ -60,3 +60,11 @@ request.get('http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=Believ
             }
             console.dir(JSON.parse(body));
         });
+
+request.get('http://api.openweathermap.org/data/2.5/weather?q=Cleveland&A\PPID=537eb84d28d1b2075c6e44b37f511b10', function(error, resp, body) {
+    if(error) {
+	return console.log(JSON.parse(error));
+    }
+    console.dir(JSON.parse(body));
+});
+     
