@@ -1,10 +1,10 @@
-var express = require("express");
-var bodyParser = require("body-parser");
-var mongodb = require("mongodb");
-var request = require('request');
-var mongoose = require('mongoose');
-const path = require('path');
-const http = require('http');
+// var express = require("express");
+// var bodyParser = require("body-parser");
+// var mongodb = require("mongodb");
+// var request = require('request');
+// var mongoose = require('mongoose');
+// const path = require('path');
+// const http = require('http');
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -38,11 +38,7 @@ first_instance.save(function (err){
 });
 
 
-Master_Playlist.find(function (err, Master_Playlist) {
-  if (err) return console.error(err);
-  console.dir(Master_Playlists);
-  console.dir("hello");
-})
+Master_Playlist.find().exec;
 /**
  * Get port from environment and store in Express.
  */
@@ -51,9 +47,9 @@ app.set('port', port);
 const server = http.createServer(app);
 server.listen(port, () => console.log(`API running on localhost:${port}`));
 
-request.get('http://ipinfo.io', function(error, resp, body) {
+request.get('http://ipinfo.io/', function(error, resp, body) {
   if(error){
-    return console.dir(error);
+    return console.log(JSON.parse(error));
   }
   console.dir(JSON.parse(body));
-})
+});
