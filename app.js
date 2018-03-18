@@ -1,10 +1,10 @@
-// var express = require("express");
-// var bodyParser = require("body-parser");
-// var mongodb = require("mongodb");
-// var request = require('request');
-// var mongoose = require('mongoose');
-// const path = require('path');
-// const http = require('http');
+var express = require("express");
+var bodyParser = require("body-parser");
+var mongodb = require("mongodb");
+var request = require('request');
+var mongoose = require('mongoose');
+const path = require('path');
+const http = require('http');
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -53,3 +53,10 @@ request.get('http://ipinfo.io/', function(error, resp, body) {
   }
   console.dir(JSON.parse(body));
 });
+
+request.get('http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=Believe&artist=Cher&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+            if (error) {
+                return console.dir(error);
+            }
+            console.dir(JSON.parse(body));
+        });
