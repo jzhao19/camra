@@ -1,8 +1,6 @@
 var mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
-
-var m_Playlist_Schema = new Schema({
+var m_Playlist_Schema = mongoose.Schema({
 	a_id : Number,
 	a_name : String,
 })

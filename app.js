@@ -1,16 +1,35 @@
-// var express = require("express");
-// var bodyParser = require("body-parser");
-// var mongodb = require("mongodb");
-// var request = require('request');
-// var mongoose = require('mongoose');
-// const path = require('path');
-// const http = require('http');
+var express = require("express");
+var bodyParser = require("body-parser");
+var cookieParser = require("cookie-parser");
+var mongodb = require("mongodb");
+var request = require('request');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var flash = require('connect-flash');
+var session = require('express-session');
+const path = require('path');
+const http = require('http');
+
+
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
 
 var app = express();
-//const api = require('./server/routes/api');
+
+app.use(cookieParser());
+app.use(bodyParser());
+
+app.set('view engine', 'ejs');
+
+app.use(session({ secret: 'camra'}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+require('./src/app/routes.js')(app, passport);
+
+require('./passport.js')(passport);
 
 // Parsers for POST data
 app.use(bodyParser.json());
@@ -37,8 +56,6 @@ first_instance.save(function (err){
   if (err) return handleError(err);
 });
 
-
-Master_Playlist.find().exec;
 /**
  * Get port from environment and store in Express.
  */
