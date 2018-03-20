@@ -1,7 +1,8 @@
-
 body {
   height: 100%;
+  background-image: url("background-abstract-mountains.jpg");
 }
+
 .container {
   height: 100%;
   padding-top: 150px;
@@ -9,7 +10,7 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  color: red;
+  color: lightcoral;
 }
 
 h1{
