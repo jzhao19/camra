@@ -1,6 +1,5 @@
 var express = require("express");
 var bodyParser = require("body-parser");
-<<<<<<< HEAD
 var cookieParser = require("cookie-parser");
 var mongodb = require("mongodb");
 var request = require('request');
@@ -10,15 +9,6 @@ var flash = require('connect-flash');
 var session = require('express-session');
 const path = require('path');
 const http = require('http');
-
-
-=======
-var mongodb = require("mongodb");
-var request = require('request');
-var mongoose = require('mongoose');
-const path = require('path');
-const http = require('http');
->>>>>>> refs/remotes/origin/master
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -84,7 +74,7 @@ request.get('http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=Believ
                 return console.dir(error);
             }
             console.dir(JSON.parse(body));
-        });
+});
 
 request.get('http://api.openweathermap.org/data/2.5/weather?q=Cleveland&A\PPID=537eb84d28d1b2075c6e44b37f511b10', function(error, resp, body) {
     if(error) {
