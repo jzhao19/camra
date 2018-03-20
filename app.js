@@ -9,6 +9,8 @@ var flash = require('connect-flash');
 var session = require('express-session');
 const path = require('path');
 const http = require('http');
+var List = require("collections/list");
+var Iterator = require("collections/iterator");
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -82,4 +84,30 @@ request.get('http://api.openweathermap.org/data/2.5/weather?q=Cleveland&A\PPID=5
     }
     console.dir(JSON.parse(body));
 });
+
+//Using disco tag, gets 50 top tracks, creates song list and prints out values
+request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=disco&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+             if (error) {
+                 return console.dir(error);
+              }
+              obj = JSON.parse(body);
+              
+            var output = [];
+            var i = 1;
+            var list = new List();
+            while (obj.tracks.track[i] != null) {
+              var song = new Object();
+              song.name = obj.tracks.track[i].name;
+              song.artist = obj.tracks.track[i].artist.name;
+              i++;
+              list.push(song);
+              
+            }  
+            Iterator = list.iterate();
+            while ((print = Iterator.next().value) != undefined) {
+              console.log(print);
+            }
+            
+          });
+
      
