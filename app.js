@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(bodyParser());
 
 app.set('view engine', 'ejs');
-
+app.use("/styles",express.static(__dirname + "/styles"));
 app.use(session({ secret: 'camra'}));
 app.use(passport.initialize());
 app.use(passport.session());

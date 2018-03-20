@@ -1,0 +1,18 @@
+
+body {
+  height: 100%;
+}
+.container {
+  height: 100%;
+  padding-top: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: red;
+}
+
+h1{
+  font-size: 500%;
+}
+
