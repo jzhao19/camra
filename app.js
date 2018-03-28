@@ -40,7 +40,8 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
+    //console.log('gets here');
 });
 
 //Set up default mongoose connection
@@ -63,6 +64,17 @@ const port = process.env.PORT || '3000';
 app.set('port', port);
 const server = http.createServer(app);
 server.listen(port, () => console.log(`API running on localhost:${port}`));
+//app.listen(port);
+app.post('/', function(req, res) {
+    console.log('gets here');
+    //res.sendFile(path.join(__dirname, 'views/index.ejs'));
+    var selection = req.body.category;
+    var moodoption = req.body.moodoption;
+    res.render(path.join(__dirname, 'views/index.ejs'));
+    //res.send(selection + ' ' + moodoption);
+    console.log(selection);
+    console.log(moodoption);
+});
 
 request.get('http://ipinfo.io/', function(error, resp, body) {
   if(error){
