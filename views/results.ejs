@@ -40,7 +40,9 @@
 </div>
 
 <div class="container">
-  <%= results %>
+  <%= songs.forEach(function(songs) {
+  <h3><%= songs.song.name %> by <%= songs.song.artist %></h3>
+  }); %>
 </div>
 
 <!-- Bootstrap core JavaScript -->
