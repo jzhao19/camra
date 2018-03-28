@@ -70,56 +70,85 @@ app.post('/', function(req, res) {
     //res.sendFile(path.join(__dirname, 'views/index.ejs'));
     var selection = req.body.category;
     var moodoption = req.body.moodoption;
-    res.render(path.join(__dirname, 'views/index.ejs'));
+    var listSongs;
+    if (selection == 'weather') {
+      listSongs = getSongs(getWeather());
+    } else if (selection == 'location') {
+      listSongs = getSongs(getLocation());
+    } else {
+      listSongs = getSongs(moodoption);
+    }
+    res.render(path.join(__dirname, 'views/index.ejs'), {
+      songs : listSongs 
+    });
     //res.send(selection + ' ' + moodoption);
     console.log(selection);
     console.log(moodoption);
 });
 
+
+
+function getLocation() {
+
+var city = ''; //eventually have this just be blank and assigned inside
 request.get('http://ipinfo.io/', function(error, resp, body) {
   if(error){
     return console.log(JSON.parse(error));
   }
-  console.dir(JSON.parse(body));
+    var obj = JSON.parse(body);
+   
+    city = obj.city;
+    console.log("inside location" + city);
+    return city;
 });
 
-request.get('http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=Believe&artist=Cher&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
-            if (error) {
-                return console.dir(error);
-            }
-            console.dir(JSON.parse(body));
-});
 
-request.get('http://api.openweathermap.org/data/2.5/weather?q=Cleveland&A\PPID=537eb84d28d1b2075c6e44b37f511b10', function(error, resp, body) {
-    if(error) {
-	return console.log(JSON.parse(error));
-    }
-    console.dir(JSON.parse(body));
-});
+}
 
-//Using disco tag, gets 50 top tracks, creates song list and prints out values
-request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=disco&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+function getWeather() {
+  var city = getLocation();
+  console.log("weather city" + city);
+  var weather = '';
+  request.get('http://api.openweathermap.org/data/2.5/weather?q=' + city + '&A\PPID=537eb84d28d1b2075c6e44b37f511b10', function(error, resp, body) {
+     if(error) {
+      return console.log(JSON.parse(error));
+       }
+      obj = JSON.parse(body);
+      //console.log(obj);
+      //console.log(city);
+      weather = obj.weather[0].main;    
+  });
+   return weather;
+}
+
+function getSongs(tag) {
+var list = new List();
+var keyword = tag;
+request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=' + keyword + '&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
              if (error) {
                  return console.dir(error);
               }
               obj = JSON.parse(body);
               
-            var output = [];
             var i = 1;
-            var list = new List();
             while (obj.tracks.track[i] != null) {
               var song = new Object();
               song.name = obj.tracks.track[i].name;
               song.artist = obj.tracks.track[i].artist.name;
               i++;
               list.push(song);
-              
+        
             }  
-            Iterator = list.iterate();
-            while ((print = Iterator.next().value) != undefined) {
-              console.log(print);
-            }
-            
+             // console.log(keyword);
+           // Iterator = list.iterate();
+            //var StringRep = '';
+            //while ((print = Iterator.next().value) != undefined) {
+             // StringRep = StringRep + 'Song: ' + print.name + 'Artist: ' + print.artist + '\n';
+             //console.log('Song: ' + print.name); //not on the console, do it on the gui
+             //console.log('Artist: ' + print.artist + '\n');
+            //}
+   
           });
-
+return list;
+}
      
