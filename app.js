@@ -44,7 +44,7 @@ app.get('*', (req, res) => {
 });
 
 //Set up default mongoose connection
-/*mongoose.connect('mongodb://localhost:27017/my_database');
+mongoose.connect('mongodb://localhost:27017/my_database');
 
 var db = mongoose.connection;
 
