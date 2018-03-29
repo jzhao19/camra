@@ -39,11 +39,11 @@
   </div>
 </div>
 
+  <% songs.forEach(function(songs) {%>
 <div class="container">
-  <%= songs.forEach(function(songs) {
-  <h3><%= songs.song.name %> by <%= songs.song.artist %></h3>
-  }); %>
-</div>
+  <h3><%= songs.name %> by <%= songs.artist %> </h3>
+  </div>
+  <% }); %>
 
 <!-- Bootstrap core JavaScript -->
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
