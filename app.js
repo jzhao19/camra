@@ -41,11 +41,10 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist/index.html'));
-    //console.log('gets here');
 });
 
 //Set up default mongoose connection
-mongoose.connect('mongodb://localhost:27017/my_database');
+/*mongoose.connect('mongodb://localhost:27017/my_database');
 
 var db = mongoose.connection;
 
@@ -64,91 +63,149 @@ const port = process.env.PORT || '3000';
 app.set('port', port);
 const server = http.createServer(app);
 server.listen(port, () => console.log(`API running on localhost:${port}`));
-//app.listen(port);
+var listSongs;
 app.post('/', function(req, res) {
-    console.log('gets here');
-    //res.sendFile(path.join(__dirname, 'views/index.ejs'));
+   // console.log('gets here');
     var selection = req.body.category;
     var moodoption = req.body.moodoption;
-    var listSongs;
     if (selection == 'weather') {
-      listSongs = getSongs(getWeather());
+      //console.log("enter W");
+      getLocation(function(city) {
+        getWeather(city, function(weather) {
+          getWeatherSongs(weather,res);  
+        });
+      });
     } else if (selection == 'location') {
-      listSongs = getSongs(getLocation());
+        getLocation(function(city) {
+          getLocationSongs(city, res);
+         });
+    
     } else {
-      listSongs = getSongs(moodoption);
+      getMoodSongs(moodoption,res);
     }
-    res.render(path.join(__dirname, 'views/index.ejs'), {
-      songs : listSongs 
-    });
-    //res.send(selection + ' ' + moodoption);
-    console.log(selection);
-    console.log(moodoption);
 });
 
+function getLocation(callback) {
 
-
-function getLocation() {
-
-var city = ''; //eventually have this just be blank and assigned inside
-request.get('http://ipinfo.io/', function(error, resp, body) {
-  if(error){
-    return console.log(JSON.parse(error));
-  }
+  var city = '';
+  request.get('http://ipinfo.io/', function(error, resp, body) {
+    if(error){
+      return console.log(JSON.parse(error));
+    }
     var obj = JSON.parse(body);
-   
     city = obj.city;
-    console.log("inside location" + city);
-    return city;
-});
-
-
+   // console.log("inside location" + city);
+    callback(city);
+  });
 }
 
-function getWeather() {
-  var city = getLocation();
-  console.log("weather city" + city);
+function getLocationSongs(location, res) {
+  var list = new List();
+  var keyword = location; 
+  console.log("in get location songs " + location);
+  request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=' + keyword + '&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+    if (error) {
+      return console.dir(error);
+    }
+    obj = JSON.parse(body);  
+    var i = 1;
+    while (obj.tracks.track[i] != null) {
+      var song = new Object();
+      song.name = obj.tracks.track[i].name;
+      song.artist = obj.tracks.track[i].artist.name;
+      i++;
+      list.push(song);
+        
+    }  
+            
+    Iterator = list.iterate();
+    while ((print = Iterator.next().value) != undefined) {
+      console.log('Song: ' + print.name); 
+      console.log('Artist: ' + print.artist + '\n');
+    }
+    
+    res.render(path.join(__dirname, 'views/results.ejs'), {
+      songs : list
+    });
+  });
+}
+
+function getWeather(city, callback) {
+  //console.log("weather city" + city);
   var weather = '';
   request.get('http://api.openweathermap.org/data/2.5/weather?q=' + city + '&A\PPID=537eb84d28d1b2075c6e44b37f511b10', function(error, resp, body) {
-     if(error) {
+    if(error) {
       return console.log(JSON.parse(error));
-       }
-      obj = JSON.parse(body);
-      //console.log(obj);
-      //console.log(city);
-      weather = obj.weather[0].main;    
+    }
+    obj = JSON.parse(body);
+    weather = obj.weather[0].main;  
+      //console.log("inside weather" + weather); 
+    callback(weather);
   });
-   return weather;
+
+  //console.log("weather " + weather);
+
 }
 
-function getSongs(tag) {
-var list = new List();
-var keyword = tag;
-request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=' + keyword + '&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
-             if (error) {
-                 return console.dir(error);
-              }
-              obj = JSON.parse(body);
-              
-            var i = 1;
-            while (obj.tracks.track[i] != null) {
-              var song = new Object();
-              song.name = obj.tracks.track[i].name;
-              song.artist = obj.tracks.track[i].artist.name;
-              i++;
-              list.push(song);
-        
-            }  
-             // console.log(keyword);
-           // Iterator = list.iterate();
-            //var StringRep = '';
-            //while ((print = Iterator.next().value) != undefined) {
-             // StringRep = StringRep + 'Song: ' + print.name + 'Artist: ' + print.artist + '\n';
-             //console.log('Song: ' + print.name); //not on the console, do it on the gui
-             //console.log('Artist: ' + print.artist + '\n');
-            //}
+
+function getWeatherSongs(weather,res) {
+  var list = new List();
+  var keyword = weather;
+  console.log("in get weather songs " + weather);
+  request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=' + keyword + '&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+    if (error) {
+      return console.dir(error);
+    }
+    
+    obj = JSON.parse(body);
+    var i = 1;
+    while (obj.tracks.track[i] != null) {
+      var song = new Object();
+      song.name = obj.tracks.track[i].name;
+      song.artist = obj.tracks.track[i].artist.name;
+      i++;
+      list.push(song);   
+    }  
+            
+    Iterator = list.iterate();
+    while ((print = Iterator.next().value) != undefined) {
+      console.log('Song: ' + print.name); //not on the console, do it on the gui
+      console.log('Artist: ' + print.artist + '\n');
+    }
    
-          });
-return list;
+    res.render(path.join(__dirname, 'views/results.ejs'), {
+      songs : list
+    });
+  });
+}
+
+function getMoodSongs(tag,res) {
+  var list = new List();
+  var keyword = tag;
+  //console.log(keyword);
+  console.log("in get mood songs " + keyword);
+  request.get('http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=' + keyword + '&api_key=eaa991e4c471a7135879ba14652fcbe5&format=json', function(error, resp, body) {
+    if (error) {
+      return console.dir(error);
+    }
+    obj = JSON.parse(body);
+    var i = 1;
+    while (obj.tracks.track[i] != null) {
+      var song = new Object();
+      song.name = obj.tracks.track[i].name;
+      song.artist = obj.tracks.track[i].artist.name;
+      i++;
+      list.push(song);
+    }  
+    
+    Iterator = list.iterate();
+    while ((print = Iterator.next().value) != undefined) {
+      console.log('Song: ' + print.name); //not on the console, do it on the gui
+      console.log('Artist: ' + print.artist + '\n');
+    }
+    res.render(path.join(__dirname, 'views/results.ejs'), {
+      songs : list
+    });
+  });
 }
      
