@@ -11,6 +11,7 @@ const path = require('path');
 const http = require('http');
 var List = require("collections/list");
 var Iterator = require("collections/iterator");
+var Spotify = require("spotify-api-client");
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -72,16 +73,22 @@ app.post('/', function(req, res) {
       //console.log("enter W");
       getLocation(function(city) {
         getWeather(city, function(weather) {
-          getWeatherSongs(weather,res);  
+          getWeatherSongs(weather,res, function(list) {
+          	attachURLs(list);
+          }); 
         });
       });
     } else if (selection == 'location') {
         getLocation(function(city) {
-          getLocationSongs(city, res);
+          getLocationSongs(city, res, function(list) {
+          	attachURLs(list);
+          });
          });
     
     } else {
-      getMoodSongs(moodoption,res);
+      getMoodSongs(moodoption,res, function(list) {
+      	attachURLs(list);
+      });
     }
 });
 
@@ -99,7 +106,7 @@ function getLocation(callback) {
   });
 }
 
-function getLocationSongs(location, res) {
+function getLocationSongs(location, res, callback) {
   var list = new List();
   var keyword = location; 
   console.log("in get location songs " + location);
@@ -117,7 +124,7 @@ function getLocationSongs(location, res) {
       list.push(song);
         
     }  
-            
+       callback(list);      
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); 
@@ -127,7 +134,9 @@ function getLocationSongs(location, res) {
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
+
   });
+   
 }
 
 function getWeather(city, callback) {
@@ -148,7 +157,7 @@ function getWeather(city, callback) {
 }
 
 
-function getWeatherSongs(weather,res) {
+function getWeatherSongs(weather,res, callback) {
   var list = new List();
   var keyword = weather;
   console.log("in get weather songs " + weather);
@@ -166,7 +175,7 @@ function getWeatherSongs(weather,res) {
       i++;
       list.push(song);   
     }  
-            
+             callback(list);
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
@@ -176,10 +185,12 @@ function getWeatherSongs(weather,res) {
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
+   
   });
+  
 }
 
-function getMoodSongs(tag,res) {
+function getMoodSongs(tag,res, callback) {
   var list = new List();
   var keyword = tag;
   //console.log(keyword);
@@ -197,7 +208,7 @@ function getMoodSongs(tag,res) {
       i++;
       list.push(song);
     }  
-    
+     callback(list);
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
@@ -206,6 +217,35 @@ function getMoodSongs(tag,res) {
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
+   
   });
+    
 }
+
+function attachURLs(list) {
+	console.log('I entered the url stuff');
+	console.log("list" + list.song.name); //this is returning undefined
+	var input = new List();
+	input = list;
+	var Nlist = new List();
+	Iterator = input.iterate();
+
+
+    while ((song = Iterator.next().value) != undefined) {
+      obj = Spotify.findTrack(song.name);
+      console.log("inside while" + obj.tracks.items.album.preview_url);
+      song.URL = obj.tracks.items.album.preview_url;
+      Nlist.push(song);
+    }
+
+     Iterator = Nlist.iterate();
+     while ((print = Iterator.next().value) != undefined) {
+      console.log('Song: ' + print.name); //not on the console, do it on the gui
+      console.log('Artist: ' + print.artist + '\n');
+      console.log('URL ' + print.URL); 
+    }
+
+}
+
+
      
