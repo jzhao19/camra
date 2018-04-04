@@ -74,14 +74,14 @@ app.post('/', function(req, res) {
       getLocation(function(city) {
         getWeather(city, function(weather) {
           getWeatherSongs(weather,res, function(list) {
-          	attachURLs(list);
+              attachURLs(list);
           }); 
         });
       });
     } else if (selection == 'location') {
         getLocation(function(city) {
           getLocationSongs(city, res, function(list) {
-          	attachURLs(list);
+              attachURLs(list);
           });
          });
     
@@ -123,8 +123,7 @@ function getLocationSongs(location, res, callback) {
       i++;
       list.push(song);
         
-    }  
-       callback(list);      
+    }        
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); 
@@ -134,6 +133,7 @@ function getLocationSongs(location, res, callback) {
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
+      callback(list);
 
   });
    
@@ -174,14 +174,14 @@ function getWeatherSongs(weather,res, callback) {
       song.artist = obj.tracks.track[i].artist.name;
       i++;
       list.push(song);   
-    }  
-             callback(list);
+    } 
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
       console.log('Artist: ' + print.artist + '\n');
     }
-   
+
+      callback(list);
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
@@ -208,7 +208,6 @@ function getMoodSongs(tag,res, callback) {
       i++;
       list.push(song);
     }  
-     callback(list);
     Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
@@ -217,34 +216,44 @@ function getMoodSongs(tag,res, callback) {
     res.render(path.join(__dirname, 'views/results.ejs'), {
       songs : list
     });
+      callback(list);
    
   });
     
 }
 
 function attachURLs(list) {
-	console.log('I entered the url stuff');
-	console.log("list" + list.song.name); //this is returning undefined
-	var input = new List();
-	input = list;
-	var Nlist = new List();
-	Iterator = input.iterate();
-
-
+    console.log('I entered the url stuff');
+    //console.log("list" + list.song.name); //this is returning undefined
+    var input = new List();
+    input = list;
+    var Nlist = new List();
+    Iterator = input.iterate();
+    
+    
     while ((song = Iterator.next().value) != undefined) {
-      obj = Spotify.findTrack(song.name);
-      console.log("inside while" + obj.tracks.items.album.preview_url);
-      song.URL = obj.tracks.items.album.preview_url;
-      Nlist.push(song);
+	console.log("song name: " + song.name);
+	//obj = Spotify.findTrack(song.name);
+	obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
+	var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
+	var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
+	var options = {
+	    url: tokenurl,
+	    headers: accessheaders
+	}
+	    
+	console.log(obj);
+	console.log("inside while" + obj.tracks.items.album.preview_url);
+	song.URL = obj.tracks.items.album.preview_url;
+	Nlist.push(song);
     }
-
-     Iterator = Nlist.iterate();
-     while ((print = Iterator.next().value) != undefined) {
-      console.log('Song: ' + print.name); //not on the console, do it on the gui
-      console.log('Artist: ' + print.artist + '\n');
-      console.log('URL ' + print.URL); 
-    }
-
+    
+    Iterator = Nlist.iterate();
+    while ((print = Iterator.next().value) != undefined) {
+	console.log('Song: ' + print.name); //not on the console, do it on the gui
+	console.log('Artist: ' + print.artist + '\n');
+	console.log('URL ' + print.URL); 
+    }   
 }
 
 
