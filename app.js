@@ -1,3 +1,5 @@
+import { access } from "fs";
+
 var express = require("express");
 var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
@@ -12,9 +14,14 @@ const http = require('http');
 var List = require("collections/list");
 var Iterator = require("collections/iterator");
 var Spotify = require("spotify-api-client");
+var rp = require('request-promise');
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
+
+var client_id = '0b4d677f62e140ee8532bed91951ae52'; // Your client id
+var client_secret = 'cc1e617a9c064aa982e8eeaf65626a94'; // Your secret
+var redirect_uri = 'http://localhost:3000/callback' // Your redirect uri
 
 var app = express();
 
@@ -64,6 +71,48 @@ const port = process.env.PORT || '3000';
 app.set('port', port);
 const server = http.createServer(app);
 server.listen(port, () => console.log(`API running on localhost:${port}`));
+var access_token;
+var options = {
+  method: 'POST',
+  uri: 'https://accounts.spotify.com/api/token',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Authorization': "Basic MGI0ZDY3N2Y2MmUxNDBlZTg1MzJiZWQ5MTk1MWFlNTI6Y2MxZTYxN2E5YzA2NGFhOTgyZThlZWFmNjU2MjZhOTQ="
+  },
+  body: 'grant_type=client_credentials',
+
+  json: false // Automatically stringifies the body to JSON
+};
+
+rp(options)
+  .then(function (parsedBody) {
+    access_token = parsedBody
+      console.log(parsedBody);
+  })
+  .catch(function (err) {
+      console.log(err);
+  });
+
+var options1 = {
+    uri: 'https://api.github.com/user/repos',
+    headers: {
+      'Authorization': 'Bearer' + access_token.access_token
+    },
+    body: {
+        q: 'q=roadhouse%20blues',
+        type: 'type=artist'
+    },
+    json: true // Automatically parses the JSON string in the response
+};
+
+rp(options1)
+    .then(function (repos) {
+        console.log(repos);
+    })
+    .catch(function (err) {
+        // API call failed...
+    });
+
 var listSongs;
 app.post('/', function(req, res) {
    // console.log('gets here');
@@ -222,39 +271,39 @@ function getMoodSongs(tag,res, callback) {
     
 }
 
-function attachURLs(list) {
-    console.log('I entered the url stuff');
-    //console.log("list" + list.song.name); //this is returning undefined
-    var input = new List();
-    input = list;
-    var Nlist = new List();
-    Iterator = input.iterate();
+ function attachURLs(list) {
+//     console.log('I entered the url stuff');
+//     //console.log("list" + list.song.name); //this is returning undefined
+//     var input = new List();
+//     input = list;
+//     var Nlist = new List();
+//     Iterator = input.iterate();
     
     
-    while ((song = Iterator.next().value) != undefined) {
-	console.log("song name: " + song.name);
-	//obj = Spotify.findTrack(song.name);
-	obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
-	var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
-	var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
-	var options = {
-	    url: tokenurl,
-	    headers: accessheaders
-	}
-	    
-	console.log(obj);
-	console.log("inside while" + obj.tracks.items.album.preview_url);
-	song.URL = obj.tracks.items.album.preview_url;
-	Nlist.push(song);
-    }
+//   while ((song = Iterator.next().value) != undefined) {
+//     console.log("song name: " + song.name);
+//     //obj = Spotify.findTrack(song.name);
+//     obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
+//     var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
+//     var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
+//     var options = {
+//         url: tokenurl,
+//         headers: accessheaders
+//     }
+        
+//     console.log(obj);
+//     console.log("inside while" + obj.tracks.items.album.preview_url);
+//     song.URL = obj.tracks.items.album.preview_url;
+// 	  Nlist.push(song);
+//   }
     
-    Iterator = Nlist.iterate();
-    while ((print = Iterator.next().value) != undefined) {
-	console.log('Song: ' + print.name); //not on the console, do it on the gui
-	console.log('Artist: ' + print.artist + '\n');
-	console.log('URL ' + print.URL); 
-    }   
-}
+//   Iterator = Nlist.iterate();
+//   while ((print = Iterator.next().value) != undefined) {
+//     console.log('Song: ' + print.name); //not on the console, do it on the gui
+//     console.log('Artist: ' + print.artist + '\n');
+//     console.log('URL ' + print.URL); 
+//   }   
+ }
 
 
      

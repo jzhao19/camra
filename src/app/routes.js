@@ -1,16 +1,11 @@
 
 module.exports = function(app, passport) {
 
-	// =====================================
-	// HOME PAGE (with login links) ========
-	// =====================================
+    // homepage
 	app.get('/', function(req, res) {
 		res.render('index.ejs'); // load the index.ejs file
 	});
 
-	// =====================================
-	// LOGIN ===============================
-	// =====================================
 	// show the login form
 	app.get('/login', function(req, res) {
 
@@ -25,9 +20,6 @@ module.exports = function(app, passport) {
 		failureFlash : true // allow flash messages
 	}));
 
-	// =====================================
-	// SIGNUP ==============================
-	// =====================================
 	// show the signup form
 	app.get('/signup', function(req, res) {
 
