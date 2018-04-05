@@ -15,6 +15,7 @@ var List = require("collections/list");
 var Iterator = require("collections/iterator");
 var Spotify = require("spotify-api-client");
 var rp = require('request-promise');
+var SpotifyWebApi = require('spotify-web-api-node');
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
@@ -120,24 +121,30 @@ app.post('/', function(req, res) {
     var moodoption = req.body.moodoption;
     if (selection == 'weather') {
       //console.log("enter W");
-      getLocation(function(city) {
-        getWeather(city, function(weather) {
-          getWeatherSongs(weather,res, function(list) {
-              attachURLs(list);
-          }); 
-        });
-      });
+	getLocation(function(city) {
+            getWeather(city, function(weather) {
+		getWeatherSongs(weather,res, function(list) {
+		    attachURLs(list, res, function(list) {
+			render(list, res);
+		    });
+		}); 
+            });
+	});
     } else if (selection == 'location') {
         getLocation(function(city) {
-          getLocationSongs(city, res, function(list) {
-              attachURLs(list);
-          });
-         });
-    
+            getLocationSongs(city, res, function(list) {
+		attachURLs(list, res, function(list) {
+		    render(list, res);
+		});
+            });
+        });
+	
     } else {
-      getMoodSongs(moodoption,res, function(list) {
-      	attachURLs(list);
-      });
+	getMoodSongs(moodoption,res, function(list) {
+      	    attachURLs(list, res, function(list) {
+		render(list, res);
+	    });
+	});
     }
 });
 
@@ -179,9 +186,9 @@ function getLocationSongs(location, res, callback) {
       console.log('Artist: ' + print.artist + '\n');
     }
     
-    res.render(path.join(__dirname, 'views/results.ejs'), {
-      songs : list
-    });
+    //res.render(path.join(__dirname, 'views/results.ejs'), {
+    //  songs : list
+    //});
       callback(list);
 
   });
@@ -231,9 +238,9 @@ function getWeatherSongs(weather,res, callback) {
     }
 
       callback(list);
-    res.render(path.join(__dirname, 'views/results.ejs'), {
-      songs : list
-    });
+    //res.render(path.join(__dirname, 'views/results.ejs'), {
+    //  songs : list
+    //});
    
   });
   
@@ -262,15 +269,16 @@ function getMoodSongs(tag,res, callback) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
       console.log('Artist: ' + print.artist + '\n');
     }
-    res.render(path.join(__dirname, 'views/results.ejs'), {
-      songs : list
-    });
+    //res.render(path.join(__dirname, 'views/results.ejs'), {
+    //  songs : list
+    //});
       callback(list);
    
   });
     
 }
 
+<<<<<<< HEAD
  function attachURLs(list) {
 //     console.log('I entered the url stuff');
 //     //console.log("list" + list.song.name); //this is returning undefined
@@ -278,8 +286,57 @@ function getMoodSongs(tag,res, callback) {
 //     input = list;
 //     var Nlist = new List();
 //     Iterator = input.iterate();
+=======
+function attachURLs(list, res, callback) {
+    console.log('I entered the url stuff');
+    //console.log("list" + list.song.name); //this is returning undefined
+    var input = new List();
+    input = list;
+    var Nlist = new List();
+    Iterator = input.iterate();
+>>>>>>> 3092c33f7e7287a3513553ec1697f4b8dd29b399
     
+    var spotifyApi = new SpotifyWebApi({
+	clientId : '0b4d677f62e140ee8532bed91951ae52',
+	clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
+    });
     
+    // Retrieve an access token.
+    spotifyApi.clientCredentialsGrant()
+	.then(function(data) {
+	    console.log('The access token expires in ' + data.body['expires_in']);
+	    console.log('The access token is ' + data.body['access_token']);
+	    token = data.body['access_token'];
+	    // Save the access token so that it's used in future calls
+	    spotifyApi.setAccessToken(data.body['access_token']);
+	    while ((song = Iterator.next().value) != undefined) {
+		console.log("song name: " + song.name);	
+		obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
+		    .then(function(data) {
+			console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+data.body.tracks.items[0].preview_url);
+			song.url = data.body.tracks.items[0].preview_url;
+			//if (song.url != null)
+			Nlist.push(song);
+		    }, function(err) {
+			console.error(err);
+		    });
+	    }
+	}, function(err) {
+	    console.log('Something went wrong when retrieving an access token', err);
+	});
+    //res.render(path.join(__dirname, 'views/results.ejs'), {
+	//songs : Nlist
+    //});
+
+    callback(Nlist);
+    
+    //function callback(error, response, body) {
+	//console.log(response);
+    //}
+    
+    //request(options, callback);
+    
+<<<<<<< HEAD
 //   while ((song = Iterator.next().value) != undefined) {
 //     console.log("song name: " + song.name);
 //     //obj = Spotify.findTrack(song.name);
@@ -304,6 +361,56 @@ function getMoodSongs(tag,res, callback) {
 //     console.log('URL ' + print.URL); 
 //   }   
  }
+=======
+    //while ((song = Iterator.next().value) != undefined) {
+	//console.log("song name: " + song.name);	
+	//obj = spotifyApi.searchTracks('track:'+song.name)
+	//    .then(function(data) {
+	//	console.log('Song info', data.body);
+	//    }, function(err) {
+	//	console.error(err);
+	//   });
+	/*
+	var url = 'https://api.spotify.com/v1/search';
+	//var tokenurl = 'https://accounts.spotify.com/api/token'
+	var options = {
+	    method: 'GET',
+	    uri: url,
+	    body: 'q='+song.name.replace(' ','%20') + '&type=track&limit=1&offset=0',
+	    headers: {
+		'Authorization': 'Bearer ' + token  
+		//'Authorization': 'Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
+	    },
+	    json: true // Automatically stringifies the body to JSON
+	};
+	
+	function callback(error, response, body) {
+	    console.log(response);
+	}
+    
+	request(options, callback);*/
 
+	//obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
+	//var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
+	    
+	//console.log(obj);
+	//console.log("inside while" + obj.tracks.items.album.preview_url);
+    //song.URL = obj.tracks.items.album.preview_url;
+	//Nlist.push(song);
+//}
+    
+    //Iterator = Nlist.iterate();
+    //while ((print = Iterator.next().value) != undefined) {
+//	console.log('Song: ' + print.name); //not on the console, do it on the gui
+//	console.log('Artist: ' + print.artist + '\n');
+//	console.log('URL ' + print.URL); 
+    //    }
+}
+>>>>>>> 3092c33f7e7287a3513553ec1697f4b8dd29b399
 
-     
+function render(list, res) {
+    console.log("list to render: " + list);
+    res.render(path.join(__dirname, 'views/results.ejs'), {
+	songs : list
+    });
+}
