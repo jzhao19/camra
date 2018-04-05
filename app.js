@@ -1,5 +1,3 @@
-import { access } from "fs";
-
 var express = require("express");
 var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
@@ -14,15 +12,10 @@ const http = require('http');
 var List = require("collections/list");
 var Iterator = require("collections/iterator");
 var Spotify = require("spotify-api-client");
-var rp = require('request-promise');
 var SpotifyWebApi = require('spotify-web-api-node');
 
 var Master_Playlist = require('./models/Master_Playlists.js')
 var ObjectID = mongodb.ObjectID;
-
-var client_id = '0b4d677f62e140ee8532bed91951ae52'; // Your client id
-var client_secret = 'cc1e617a9c064aa982e8eeaf65626a94'; // Your secret
-var redirect_uri = 'http://localhost:3000/callback' // Your redirect uri
 
 var app = express();
 
@@ -72,48 +65,6 @@ const port = process.env.PORT || '3000';
 app.set('port', port);
 const server = http.createServer(app);
 server.listen(port, () => console.log(`API running on localhost:${port}`));
-var access_token;
-var options = {
-  method: 'POST',
-  uri: 'https://accounts.spotify.com/api/token',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Authorization': "Basic MGI0ZDY3N2Y2MmUxNDBlZTg1MzJiZWQ5MTk1MWFlNTI6Y2MxZTYxN2E5YzA2NGFhOTgyZThlZWFmNjU2MjZhOTQ="
-  },
-  body: 'grant_type=client_credentials',
-
-  json: false // Automatically stringifies the body to JSON
-};
-
-rp(options)
-  .then(function (parsedBody) {
-    access_token = parsedBody
-      console.log(parsedBody);
-  })
-  .catch(function (err) {
-      console.log(err);
-  });
-
-var options1 = {
-    uri: 'https://api.github.com/user/repos',
-    headers: {
-      'Authorization': 'Bearer' + access_token.access_token
-    },
-    body: {
-        q: 'q=roadhouse%20blues',
-        type: 'type=artist'
-    },
-    json: true // Automatically parses the JSON string in the response
-};
-
-rp(options1)
-    .then(function (repos) {
-        console.log(repos);
-    })
-    .catch(function (err) {
-        // API call failed...
-    });
-
 var listSongs;
 app.post('/', function(req, res) {
    // console.log('gets here');
@@ -278,15 +229,6 @@ function getMoodSongs(tag,res, callback) {
     
 }
 
-<<<<<<< HEAD
- function attachURLs(list) {
-//     console.log('I entered the url stuff');
-//     //console.log("list" + list.song.name); //this is returning undefined
-//     var input = new List();
-//     input = list;
-//     var Nlist = new List();
-//     Iterator = input.iterate();
-=======
 function attachURLs(list, res, callback) {
     console.log('I entered the url stuff');
     //console.log("list" + list.song.name); //this is returning undefined
@@ -294,39 +236,44 @@ function attachURLs(list, res, callback) {
     input = list;
     var Nlist = new List();
     Iterator = input.iterate();
->>>>>>> 3092c33f7e7287a3513553ec1697f4b8dd29b399
     
     var spotifyApi = new SpotifyWebApi({
-	clientId : '0b4d677f62e140ee8532bed91951ae52',
-	clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
+      clientId : '0b4d677f62e140ee8532bed91951ae52',
+      clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
     });
     
     // Retrieve an access token.
-    spotifyApi.clientCredentialsGrant()
-	.then(function(data) {
+    spotifyApi.clientCredentialsGrant().then(function(data) {
 	    console.log('The access token expires in ' + data.body['expires_in']);
 	    console.log('The access token is ' + data.body['access_token']);
 	    token = data.body['access_token'];
 	    // Save the access token so that it's used in future calls
 	    spotifyApi.setAccessToken(data.body['access_token']);
 	    while ((song = Iterator.next().value) != undefined) {
-		console.log("song name: " + song.name);	
-		obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
-		    .then(function(data) {
-			console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+data.body.tracks.items[0].preview_url);
-			song.url = data.body.tracks.items[0].preview_url;
-			//if (song.url != null)
-			Nlist.push(song);
+        console.log("song name: " + song.name);	
+        console.log("song artist: " + song.artist);	
+        obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
+		    .then(function(data) {  
+          //console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
+          console.log(JSON.parse(data));
+          if (data.body.tracks.items[0].preview_url != null) {
+            console.log("inside " + song.name);
+            song.url = data.body.tracks.items[0].preview_url;
+            Nlist.push(song);
+          }
 		    }, function(err) {
-			console.error(err);
-		    });
+			    console.error(err);
+		    }).catch(function() { console.log("promise rejected")});
 	    }
 	}, function(err) {
 	    console.log('Something went wrong when retrieving an access token', err);
-	});
-    //res.render(path.join(__dirname, 'views/results.ejs'), {
-	//songs : Nlist
-    //});
+	}).catch(function () {
+    console.log("Promise Rejected");
+  });
+
+    res.render(path.join(__dirname, 'views/results.ejs'), {
+	    songs : Nlist
+    });
 
     callback(Nlist);
     
@@ -336,32 +283,6 @@ function attachURLs(list, res, callback) {
     
     //request(options, callback);
     
-<<<<<<< HEAD
-//   while ((song = Iterator.next().value) != undefined) {
-//     console.log("song name: " + song.name);
-//     //obj = Spotify.findTrack(song.name);
-//     obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
-//     var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
-//     var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
-//     var options = {
-//         url: tokenurl,
-//         headers: accessheaders
-//     }
-        
-//     console.log(obj);
-//     console.log("inside while" + obj.tracks.items.album.preview_url);
-//     song.URL = obj.tracks.items.album.preview_url;
-// 	  Nlist.push(song);
-//   }
-    
-//   Iterator = Nlist.iterate();
-//   while ((print = Iterator.next().value) != undefined) {
-//     console.log('Song: ' + print.name); //not on the console, do it on the gui
-//     console.log('Artist: ' + print.artist + '\n');
-//     console.log('URL ' + print.URL); 
-//   }   
- }
-=======
     //while ((song = Iterator.next().value) != undefined) {
 	//console.log("song name: " + song.name);	
 	//obj = spotifyApi.searchTracks('track:'+song.name)
@@ -406,11 +327,10 @@ function attachURLs(list, res, callback) {
 //	console.log('URL ' + print.URL); 
     //    }
 }
->>>>>>> 3092c33f7e7287a3513553ec1697f4b8dd29b399
 
 function render(list, res) {
     console.log("list to render: " + list);
     res.render(path.join(__dirname, 'views/results.ejs'), {
 	songs : list
     });
-}
+  }
