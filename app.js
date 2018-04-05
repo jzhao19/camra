@@ -229,31 +229,40 @@ function attachURLs(list) {
     input = list;
     var Nlist = new List();
     Iterator = input.iterate();
+
+    //var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
+    var tokenurl = 'https://accounts.spotify.com/api/token'
+    var options = {
+	url: tokenurl,
+	headers: {
+	    'Authorization': 'Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
+	}
+    };
     
+    function callback(error, response, body) {
+	console.log(response);
+    }
+    
+    request(options, callback);
     
     while ((song = Iterator.next().value) != undefined) {
 	console.log("song name: " + song.name);
 	//obj = Spotify.findTrack(song.name);
-	obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
-	var tokenurl = 'https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0';
-	var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
-	var options = {
-	    url: tokenurl,
-	    headers: accessheaders
-	}
+	//obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
+	//var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
 	    
-	console.log(obj);
-	console.log("inside while" + obj.tracks.items.album.preview_url);
-	song.URL = obj.tracks.items.album.preview_url;
-	Nlist.push(song);
+	//console.log(obj);
+	//console.log("inside while" + obj.tracks.items.album.preview_url);
+	//song.URL = obj.tracks.items.album.preview_url;
+	//Nlist.push(song);
     }
     
-    Iterator = Nlist.iterate();
-    while ((print = Iterator.next().value) != undefined) {
-	console.log('Song: ' + print.name); //not on the console, do it on the gui
-	console.log('Artist: ' + print.artist + '\n');
-	console.log('URL ' + print.URL); 
-    }   
+    //Iterator = Nlist.iterate();
+    //while ((print = Iterator.next().value) != undefined) {
+//	console.log('Song: ' + print.name); //not on the console, do it on the gui
+//	console.log('Artist: ' + print.artist + '\n');
+//	console.log('URL ' + print.URL); 
+//    }   
 }
 
 
