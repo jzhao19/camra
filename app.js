@@ -84,11 +84,9 @@ app.post('/', function(req, res) {
     } else if (selection == 'location') {
         getLocation(function(city) {
             getLocationSongs(city, res, function(list) {
-		attachURLs(list, res, function(list) {
-		    render(list, res);
-		});
-            });
+		          attachURLs(list);
         });
+            });
 	
     } else {
 	getMoodSongs(moodoption,res, function(list) {
@@ -131,12 +129,12 @@ function getLocationSongs(location, res, callback) {
       list.push(song);
         
     }        
-    Iterator = list.iterate();
+  /*  Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); 
       console.log('Artist: ' + print.artist + '\n');
     }
-    
+    */
     //res.render(path.join(__dirname, 'views/results.ejs'), {
     //  songs : list
     //});
@@ -182,11 +180,11 @@ function getWeatherSongs(weather,res, callback) {
       i++;
       list.push(song);   
     } 
-    Iterator = list.iterate();
+    /*Iterator = list.iterate();
     while ((print = Iterator.next().value) != undefined) {
       console.log('Song: ' + print.name); //not on the console, do it on the gui
       console.log('Artist: ' + print.artist + '\n');
-    }
+    }*/
 
       callback(list);
     //res.render(path.join(__dirname, 'views/results.ejs'), {
@@ -229,7 +227,7 @@ function getMoodSongs(tag,res, callback) {
     
 }
 
-function attachURLs(list, res, callback) {
+function attachURLs(list) {
     console.log('I entered the url stuff');
     //console.log("list" + list.song.name); //this is returning undefined
     var input = new List();
@@ -250,20 +248,39 @@ function attachURLs(list, res, callback) {
 	    // Save the access token so that it's used in future calls
 	    spotifyApi.setAccessToken(data.body['access_token']);
 	    while ((song = Iterator.next().value) != undefined) {
-        console.log("song name: " + song.name);	
-        console.log("song artist: " + song.artist);	
+       // console.log("song name: " + song.name);	
+       // console.log("song artist: " + song.artist);	
         obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
 		    .then(function(data) {  
-          //console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
-          console.log(JSON.parse(data));
-          if (data.body.tracks.items[0].preview_url != null) {
-            console.log("inside " + song.name);
-            song.url = data.body.tracks.items[0].preview_url;
-            Nlist.push(song);
-          }
+          // console.log(song.url);
+                 
+
+          //expanded.url = data.body.tracks.items[0].preview_url;
+          var expanded = new Object();
+
+          //expanded.name = data.body.tracks.items[0].name;
+          expanded.artist = song.artist;
+          //if (data.body.tracks.items[0].preview_url != null) {
+           // console.log("inside " + song.name);
+            //expanded.url = data.body.tracks.items[0].preview_url;
+            console.log ("HELLO JAVA");
+                      console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
+
+           // console.log(expanded.url);
+            if(expanded.url != null)
+              Nlist.push(expanded);
+          //}
+          Iterator = Nlist.iterate();
+          console.log("this is nlist" + Nlist);
+    while ((print = Iterator.next().value) != undefined) {
+  console.log('Song: ' + print.name); //not on the console, do it on the gui
+  console.log('Artist: ' + print.artist + '\n');
+  console.log("we got here u dumb url");
+  console.log('URL ' + print.url); 
+        }
 		    }, function(err) {
 			    console.error(err);
-		    }).catch(function() { console.log("promise rejected")});
+		    }).catch(function() { /*console.log("promise rejected")*/});
 	    }
 	}, function(err) {
 	    console.log('Something went wrong when retrieving an access token', err);
@@ -271,11 +288,11 @@ function attachURLs(list, res, callback) {
     console.log("Promise Rejected");
   });
 
-    res.render(path.join(__dirname, 'views/results.ejs'), {
-	    songs : Nlist
-    });
+  //  res.render(path.join(__dirname, 'views/results.ejs'), {
+	//    songs : Nlist
+  //  });
 
-    callback(Nlist);
+    //callback(Nlist);
     
     //function callback(error, response, body) {
 	//console.log(response);
