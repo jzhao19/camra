@@ -258,18 +258,18 @@ function attachURLs(list) {
           //expanded.url = data.body.tracks.items[0].preview_url;
           var expanded = new Object();
 
-          //expanded.name = data.body.tracks.items[0].name;
-          expanded.artist = song.artist;
-          //if (data.body.tracks.items[0].preview_url != null) {
+          expanded.name = data.body.tracks.items[0].name;
+          expanded.artist = data.body.tracks.items[0].artists[0].name;
+          if (data.body.tracks.items[0].preview_url != null) {
            // console.log("inside " + song.name);
-            //expanded.url = data.body.tracks.items[0].preview_url;
+            expanded.url = data.body.tracks.items[0].preview_url;
             console.log ("HELLO JAVA");
                       console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
 
            // console.log(expanded.url);
             if(expanded.url != null)
               Nlist.push(expanded);
-          //}
+          }
           Iterator = Nlist.iterate();
           console.log("this is nlist" + Nlist);
     while ((print = Iterator.next().value) != undefined) {
