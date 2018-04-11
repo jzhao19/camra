@@ -1,6 +1,6 @@
 class System {
-    locationAllowed : boolean;
-    location : string;
+    public locationAllowed : boolean;
+    public location : string;
 
     constructor(locationAllowed:boolean, location:string){
        this.locationAllowed = locationAllowed;

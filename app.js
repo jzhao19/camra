@@ -14,7 +14,9 @@ var Iterator = require("collections/iterator");
 var Spotify = require("spotify-api-client");
 var SpotifyWebApi = require('spotify-web-api-node');
 
-var Master_Playlist = require('./models/Master_Playlists.js')
+
+var Master_Playlist = require('./models/Master_Playlists.js');
+
 var ObjectID = mongodb.ObjectID;
 
 var app = express();
@@ -53,10 +55,10 @@ var db = mongoose.connection;
 //Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-var first_instance = new Master_Playlist({a_id :'1' ,a_name : 'First'});
-first_instance.save(function (err){
-  if (err) return handleError(err);
-});
+// var first_instance = new Master_Playlist({a_id :'1' ,a_name : 'First'});
+// first_instance.save(function (err){
+//   if (err) return handleError(err);
+// });
 
 /**
  * Get port from environment and store in Express.
@@ -74,8 +76,9 @@ app.post('/', function(req, res) {
       //console.log("enter W");
 	getLocation(function(city) {
             getWeather(city, function(weather) {
-		getWeatherSongs(weather,res, function(list) {
-		    attachURLs(list, res, function(list) {
+		getWeatherSongs(weather, function(list) {
+		    attachURLs(list, function(list) {
+          insertDB(list);
 			render(list, res);
 		    });
 		}); 
@@ -83,19 +86,31 @@ app.post('/', function(req, res) {
 	});
     } else if (selection == 'location') {
         getLocation(function(city) {
-            getLocationSongs(city, res, function(list) {
-		          attachURLs(list);
+            getLocationSongs(city, function(list) {
+		          attachURLs(list, function(list) {
+                insertDB(list);
+                render(list, res);
+              });
         });
             });
 	
     } else {
-	getMoodSongs(moodoption,res, function(list) {
-      	    attachURLs(list, res, function(list) {
+	getMoodSongs(moodoption,function(list) {
+      	    attachURLs(list, function(list) {
 		render(list, res);
 	    });
 	});
     }
 });
+
+hashCode = function(s) {
+  var h = 0, l = s.length, i = 0;
+  if ( l > 0 )
+    while (i < l)
+      h = (h << 5) - h + s.charCodeAt(i++) | 0;
+  return h;
+};
+
 
 function getLocation(callback) {
 
@@ -111,7 +126,7 @@ function getLocation(callback) {
   });
 }
 
-function getLocationSongs(location, res, callback) {
+function getLocationSongs(location, callback) {
   var list = new List();
   var keyword = location; 
   console.log("in get location songs " + location);
@@ -162,7 +177,7 @@ function getWeather(city, callback) {
 }
 
 
-function getWeatherSongs(weather,res, callback) {
+function getWeatherSongs(weather, callback) {
   var list = new List();
   var keyword = weather;
   console.log("in get weather songs " + weather);
@@ -195,7 +210,7 @@ function getWeatherSongs(weather,res, callback) {
   
 }
 
-function getMoodSongs(tag,res, callback) {
+function getMoodSongs(tag, callback) {
   var list = new List();
   var keyword = tag;
   //console.log(keyword);
@@ -227,7 +242,7 @@ function getMoodSongs(tag,res, callback) {
     
 }
 
-function attachURLs(list) {
+function attachURLs(list, callback) {
     console.log('I entered the url stuff');
     //console.log("list" + list.song.name); //this is returning undefined
     var input = new List();
@@ -236,115 +251,73 @@ function attachURLs(list) {
     Iterator = input.iterate();
     
     var spotifyApi = new SpotifyWebApi({
-      clientId : '0b4d677f62e140ee8532bed91951ae52',
-      clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
+	    clientId : '0b4d677f62e140ee8532bed91951ae52',
+	    clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
     });
     
     // Retrieve an access token.
     spotifyApi.clientCredentialsGrant().then(function(data) {
-	    console.log('The access token expires in ' + data.body['expires_in']);
-	    console.log('The access token is ' + data.body['access_token']);
-	    token = data.body['access_token'];
-	    // Save the access token so that it's used in future calls
-	    spotifyApi.setAccessToken(data.body['access_token']);
-	    while ((song = Iterator.next().value) != undefined) {
-       // console.log("song name: " + song.name);	
-       // console.log("song artist: " + song.artist);	
-        obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
-		    .then(function(data) {  
-          // console.log(song.url);
-                 
+	console.log('The access token expires in ' + data.body['expires_in']);
+	console.log('The access token is ' + data.body['access_token']);
+	token = data.body['access_token'];
+	// Save the access token so that it's used in future calls
+	spotifyApi.setAccessToken(data.body['access_token']);
+	while ((song = Iterator.next().value) != undefined) {
+	    // console.log("song name: " + song.name);	
+	    // console.log("song artist: " + song.artist);	
+            obj = spotifyApi.searchTracks('track:'+song.name+' artist:'+song.artist)
+		.then(function(data) {  
+		    // console.log(song.url);
+                    
 
-          //expanded.url = data.body.tracks.items[0].preview_url;
-          var expanded = new Object();
+		    //expanded.url = data.body.tracks.items[0].preview_url;
+		    var expanded = new Object();
 
-          expanded.name = data.body.tracks.items[0].name;
-          expanded.artist = data.body.tracks.items[0].artists[0].name;
-          if (data.body.tracks.items[0].preview_url != null) {
-           // console.log("inside " + song.name);
-            expanded.url = data.body.tracks.items[0].preview_url;
-            console.log ("HELLO JAVA");
-                      console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
+		    expanded.name = data.body.tracks.items[0].name;
+        expanded.artist = data.body.tracks.items[0].artists[0].name;
+        
+		    if (data.body.tracks.items[0].preview_url != null) {
+			// console.log("inside " + song.name);
+			expanded.url = data.body.tracks.items[0].preview_url;
+			console.log ("HELLO JAVA");
+			console.log('Song name: ' + data.body.tracks.items[0].name + ' Song url: '+ data.body.tracks.items[0].preview_url);
 
-           // console.log(expanded.url);
-            if(expanded.url != null)
-              Nlist.push(expanded);
-          }
-          Iterator = Nlist.iterate();
-          console.log("this is nlist" + Nlist);
-    while ((print = Iterator.next().value) != undefined) {
-  console.log('Song: ' + print.name); //not on the console, do it on the gui
-  console.log('Artist: ' + print.artist + '\n');
-  console.log("we got here u dumb url");
-  console.log('URL ' + print.url); 
+			// console.log(expanded.url);
+			if(expanded.url != null) {
+			    Nlist.push(expanded);
+			}
+		    }
+		    Iterator = Nlist.iterate();
+		    console.log("this is nlist" + Nlist);
+		    while ((print = Iterator.next().value) != undefined) {
+			console.log('Song: ' + print.name); //not on the console, do it on the gui
+			console.log('Artist: ' + print.artist + '\n');
+			console.log("we got here u dumb url");
+      console.log('URL ' + print.url); 
         }
-		    }, function(err) {
-			    console.error(err);
-		    }).catch(function() { /*console.log("promise rejected")*/});
-	    }
-	}, function(err) {
-	    console.log('Something went wrong when retrieving an access token', err);
-	}).catch(function () {
-    console.log("Promise Rejected");
-  });
-
-  //  res.render(path.join(__dirname, 'views/results.ejs'), {
-	//    songs : Nlist
-  //  });
-
-    //callback(Nlist);
-    
-    //function callback(error, response, body) {
-	//console.log(response);
-    //}
-    
-    //request(options, callback);
-    
-    //while ((song = Iterator.next().value) != undefined) {
-	//console.log("song name: " + song.name);	
-	//obj = spotifyApi.searchTracks('track:'+song.name)
-	//    .then(function(data) {
-	//	console.log('Song info', data.body);
-	//    }, function(err) {
-	//	console.error(err);
-	//   });
-	/*
-	var url = 'https://api.spotify.com/v1/search';
-	//var tokenurl = 'https://accounts.spotify.com/api/token'
-	var options = {
-	    method: 'GET',
-	    uri: url,
-	    body: 'q='+song.name.replace(' ','%20') + '&type=track&limit=1&offset=0',
-	    headers: {
-		'Authorization': 'Bearer ' + token  
-		//'Authorization': 'Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
-	    },
-	    json: true // Automatically stringifies the body to JSON
-	};
-	
-	function callback(error, response, body) {
-	    console.log(response);
+        callback(Nlist);
+		}, function(err) {
+		    console.error(err);
+		}).catch(function() { /*console.log("promise rejected")*/});
 	}
-    
-	request(options, callback);*/
-
-	//obj = request.get('https://api.spotify.com/v1/search?q='+song.name.replace(' ', '%20')+ '&type=track&limit=1&offset=0');
-	//var accessheaders = 'Authorization: Basic 0b4d677f62e140ee8532bed91951ae52:cc1e617a9c064aa982e8eeaf65626a94'
-	    
-	//console.log(obj);
-	//console.log("inside while" + obj.tracks.items.album.preview_url);
-    //song.URL = obj.tracks.items.album.preview_url;
-	//Nlist.push(song);
-//}
-    
-    //Iterator = Nlist.iterate();
-    //while ((print = Iterator.next().value) != undefined) {
-//	console.log('Song: ' + print.name); //not on the console, do it on the gui
-//	console.log('Artist: ' + print.artist + '\n');
-//	console.log('URL ' + print.URL); 
-    //    }
+    }, function(err) {
+	console.log('Something went wrong when retrieving an access token', err);
+    }).catch(function () {
+	console.log("Promise Rejected");
+    });
 }
 
+function insertDB(list){
+  console.log("INSERT INTO THE DB PLEASE");
+  Iterator = list.iterate();
+  while ((song = Iterator.next().value) != undefined) {
+    var a_id = song.name + song.artist;
+    var hash = Math.abs(hashCode(a_id));
+    console.log("HASH                                      " + hash +  a_id);
+    var first_instance = new Master_Playlist({a_id: a_id ,a_name : expanded});
+    first_instance.save();
+}
+}
 function render(list, res) {
     console.log("list to render: " + list);
     res.render(path.join(__dirname, 'views/results.ejs'), {
