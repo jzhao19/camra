@@ -243,20 +243,20 @@ function getMoodSongs(tag, callback) {
 }
 
 function attachURLs(list, callback) {
-    console.log('I entered the url stuff');
-    //console.log("list" + list.song.name); //this is returning undefined
-    var input = new List();
-    input = list;
-    var Nlist = new List();
-    Iterator = input.iterate();
+  console.log('I entered the url stuff');
+  //console.log("list" + list.song.name); //this is returning undefined
+  var input = new List();
+  input = list;
+  var Nlist = new List();
+  Iterator = input.iterate();
+  
+  var spotifyApi = new SpotifyWebApi({
+    clientId : '0b4d677f62e140ee8532bed91951ae52',
+    clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
+  });
     
-    var spotifyApi = new SpotifyWebApi({
-	    clientId : '0b4d677f62e140ee8532bed91951ae52',
-	    clientSecret : 'cc1e617a9c064aa982e8eeaf65626a94'
-    });
-    
-    // Retrieve an access token.
-    spotifyApi.clientCredentialsGrant().then(function(data) {
+  // Retrieve an access token.
+  spotifyApi.clientCredentialsGrant().then(function(data) {
 	console.log('The access token expires in ' + data.body['expires_in']);
 	console.log('The access token is ' + data.body['access_token']);
 	token = data.body['access_token'];
@@ -301,10 +301,10 @@ function attachURLs(list, callback) {
 		}).catch(function() { /*console.log("promise rejected")*/});
 	}
     }, function(err) {
-	console.log('Something went wrong when retrieving an access token', err);
+	    console.log('Something went wrong when retrieving an access token', err);
     }).catch(function () {
-	console.log("Promise Rejected");
-    });
+	    console.log("Promise Rejected");
+  });
 }
 
 function insertDB(list){
@@ -316,11 +316,11 @@ function insertDB(list){
     console.log("HASH                                      " + hash +  a_id);
     var first_instance = new Master_Playlist({a_id: a_id ,a_name : expanded});
     first_instance.save();
-}
+  }
 }
 function render(list, res) {
-    console.log("list to render: " + list);
-    res.render(path.join(__dirname, 'views/results.ejs'), {
-	songs : list
-    });
-  }
+  console.log("list to render: " + list);
+  res.render(path.join(__dirname, 'views/results.ejs'), {
+    songs : list,
+  });
+}
